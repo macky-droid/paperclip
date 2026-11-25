@@ -1712,6 +1712,7 @@ function OnboardingWizardInner({
     gemini_local: "gemini",
     kimi_local: "kimi",
     pi_local: "pi",
+    t3code_local: "t3",
     cursor: "agent",
     opencode_local: "opencode",
   };
