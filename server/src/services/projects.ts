@@ -68,6 +68,7 @@ function withoutLegacyProjectEnvironment<T extends Record<string, unknown> | nul
 type ProjectWorkspaceRow = typeof projectWorkspaces.$inferSelect;
 type WorkspaceRuntimeServiceRow = typeof workspaceRuntimeServices.$inferSelect;
 const REPO_ONLY_CWD_SENTINEL = "/__paperclip_repo_only__";
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 type CreateWorkspaceInput = {
   name?: string | null;
   sourceType?: string | null;
@@ -720,6 +721,18 @@ export function projectService(db: Db, options: { captureWorkspaceUpdates?: bool
     id: string,
     options: { workspaceProvider?: boolean } = {},
   ): Promise<ProjectWithGoals | null> => {
+    if (id !== id.trim() || !isUuidLike(id)) return null;
+    const row = await db
+      .select()
+      .from(projects)
+      .where(eq(projects.id, id))
+      .then((rows) => rows[0] ?? null);
+    if (!row) return null;
+    const [withGoals] = await attachGoals(db, [row]);
+    if (!withGoals) return null;
+    const [enriched] = await attachWorkspaces(db, [withGoals], options);
+    return enriched ?? null;
+  };
     const row = await db
       .select()
       .from(projects)
