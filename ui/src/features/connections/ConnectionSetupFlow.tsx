@@ -105,6 +105,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import { useCopyAction } from "@/lib/use-copy-action";
 import { resolveAuthorizationTarget } from "@/lib/authorizationUrl";
+import { focusPopupWindow, navigatePopupWindow } from "@/lib/popup-navigation";
 import { prepareOAuthNavigation, savePendingCloudHandoff } from "@/lib/oauthHandoff";
 import { askFirstCatalogEntryIdsFor } from "./connection-defaults";
 import { AppLogo } from "@/pages/apps/AppLogo";
@@ -922,14 +923,13 @@ function StandardConnectionSetupFlow({
   const openAuthorization = useCallback((url: string) => {
     setAuthorizationFallbackUrl(url);
     const popup = oauthPopupRef.current;
-    if (!popup || popup.closed) {
+    if (!popup || popup.closed || !navigatePopupWindow(popup, url)) {
       setOAuthPhase("error");
       setOAuthError("Paperclip couldn’t open the sign-in window. Open sign-in in a new tab to continue.");
       onPhaseChange?.("needs_retry");
       return;
     }
-    popup.location.assign(url);
-    popup.focus();
+    focusPopupWindow(popup);
   }, [host, onPhaseChange]);
 
   const openAuthorizationTab = useCallback(() => {
@@ -1284,10 +1284,11 @@ function StandardConnectionSetupFlow({
     }
     setEnrollmentAuthorizationUrl(target.url);
     const popup = oauthPopupRef.current;
-    if (popup && !popup.closed) {
-      popup.location.assign(target.url);
-      popup.focus();
+    if (popup && !popup.closed && navigatePopupWindow(popup, target.url)) {
+      focusPopupWindow(popup);
     } else {
+      oauthPopupRef.current?.close();
+      oauthPopupRef.current = null;
       setConnectorEnrollmentError("Open authorization in a new tab to continue.");
     }
   }, [host, closeEnrollmentPopup]);
