@@ -43,6 +43,7 @@ import { useSidebar } from "../context/SidebarContext";
 import { useKeyboardShortcuts } from "../hooks/useKeyboardShortcuts";
 import { useStreamlinedUiEnabled } from "../hooks/useStreamlinedUiEnabled";
 import { useCompanyPageMemory } from "../hooks/useCompanyPageMemory";
+import { useDragSelectScroll } from "../hooks/useDragSelectScroll";
 import { useMobileNavVisibility } from "../hooks/useMobileNavVisibility";
 import { useMobileVisualViewport } from "../hooks/useMobileVisualViewport";
 import { healthApi } from "../api/health";
@@ -373,6 +374,7 @@ export function Layout({ sidebarSections }: { sidebarSections?: ReactNode }) {
   }, []);
 
   useCompanyPageMemory();
+  useDragSelectScroll(mainContentRef);
 
   useKeyboardShortcuts({
     onNewIssue: () => openNewIssue(),
